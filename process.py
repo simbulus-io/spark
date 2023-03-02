@@ -134,19 +134,22 @@ def main(src, outdir):
                     opts = {"can_match_color": False, "can_match_value": False, "can_match_algebraic": False}
                     for c in gs["p1_hand"]:
                         c_color = c.split(".")[0]
+                        c_val   = c.split(".")[1]
                         if (c_color == "white"):
-                            # To Do: determine whether playing the white card makes any other cards playable
-                            # that are not currently playable. We would need to move some of the logic here into
-                            # functions, and have a function that returns a list of the playable (non-white) cards
-                            # given a board position. Then call that function for our hand with the current board x
-                            # value, and then again with this current card, c, played. 
-                            False
+                            c_x = int(c[-1:])
+                            if (c_x != x):
+                                # Card would change x value
+                                # To Do: determine whether playing the white card makes any other cards playable
+                                # that are not currently playable. We would need to move some of the logic here into
+                                # functions, and have a function that returns a list of the playable (non-white) cards
+                                # given a board position. Then call that function for our hand with the current board x
+                                # value, and then again with this current card, c, played. 
+                                False
                         else:
-                            c_val   = c.split(".")[1]
                             c_aval  = eval_card(x,c_val);
-                            opts["can_match_color"] = (color == c_color)
-                            opts["can_match_value"] = (val == c_val)
-                            opts["can_match_algebraic"] = (val != c_val) and (aval == c_aval)
+                            if color==c_color: opts["can_match_color"] = True
+                            if val==c_val:     opts["can_match_value"] = True
+                            elif aval==c_aval: opts["can_match_algebraic"] = True
                     p["options"] = opts
                 if e["event_name"] == "user_played_card":
                     cur_game["n_cards_played"] = cur_game.get("n_cards_played", 0) + 1
