@@ -2,6 +2,8 @@ import argparse
 import csv
 import json
 import os
+import numpy as np
+import pandas as pd
 from datetime import datetime
 from pathlib import Path
 
@@ -47,7 +49,7 @@ def main(src, outdir):
     # - - - - - - - - - - - - Data cleanup - - - - - - - - - - - - 
     
     # sort the array of events by their unix epoch timestamp
-    evts = (sorted(evts, key=lambda e: int(e['timestamp']) ))
+    evts = (sorted(evts, key=lambda e: int(e['timestamp'])))
 
     irrelevant_keys = ["_id", "browser_session_id", "product", "activity", "bucket"]
 
@@ -68,27 +70,41 @@ def main(src, outdir):
 
     # - - - - - - - - - - - - process the events by user and game  - - - - - - - - - - - - 
 
+    # Iterate thru all games in JSON file
     for uid, uevts in uid_event_map.items():
+        # Arrays for storing data from game
         games = []
+        turns = []
         events_by_game = []
 
-        last_gamestate = None
-        cur_turn = None
-        cur_game = None
-        cur_game_events = None
+        # Variables for game and turn stats dataframes
+        game_stats_keys = ["user_id", "start_time", "end_time", "started", "finished", "n_turns",
+                           "n_cards_drawn", "n_cards_played", "can_match_color", "can_match_value",
+                           "can_match_algebraic", "matched_color", "matched_value", "matched_algebraic",
+                           "won", "play_again"]
+        turn_stats_keys = ["user_id", "event_time", "event_name", "whose_turn", "board", "p1_hand",
+                          "p2_ncards", "card", "value", "can_match_color", "can_match_value",
+                          "can_match_algebraic", "matched_color", "matched_value", "matched_algebraic"]
 
+        last_gamestate = None
+        cur_turn = None # Dictionary that records stats for current turn
+        cur_game = None # Dictionary that records stats for current game
+        cur_game_events = None # List for inputting data into JSON files
+
+        # Clear previous game data before processing next game
         def clear_game():
             nonlocal last_gamestate
             nonlocal cur_turn
             nonlocal cur_game
             nonlocal cur_game_events
             last_gamestate = None
-            cur_turn = None
+            cur_turn = {}
             cur_game = {}
             cur_game_events = []
                 
         clear_game();
             
+        # End current game processing and store data into appropriate arrays
         def wrap_game():
             nonlocal cur_game
             nonlocal cur_game_events
@@ -105,7 +121,14 @@ def main(src, outdir):
                 events_by_game.append(cur_game_events)
             clear_game()
             
+        # Iterate thru each event in current game, and calculate and record game/turn stats
         for e in uevts:
+            cur_turn = {}
+            cur_turn["user_id"] = e["user_id"]
+            cur_turn["event_time"] = e["event_time"]
+            cur_turn["event_name"] = e["event_name"]
+
+            # Event-specific commands
             if e["event_name"] == "launched_equivacards":
                 wrap_game()
             elif e["event_name"] == "game_state_changed":
@@ -116,7 +139,7 @@ def main(src, outdir):
                 cur_game["n_turns"] = cur_game.get("n_turns", 0) + 1
                 if "start_time" not in cur_game:
                     cur_game["start_time"] = e["event_time"]
-                cur_turn = e["payload"];
+                # cur_turn = e["payload"]; <--- This line wasn't being used
                 # "best_play_length": 6,
                 # "best_play": [
             elif (e["event_name"] == "user_played_card") or (e["event_name"] == "user_drew_card"):
@@ -127,6 +150,12 @@ def main(src, outdir):
                     gs = last_gamestate
                     if gs["whose_turn"]!=1:
                         raise Exception(f'whose_turn unexpected in {e}, {gs}')
+                    
+                    cur_turn["whose_turn"] = gs["whose_turn"]
+                    cur_turn["board"] = gs["board"]
+                    cur_turn["p1_hand"] = gs["p1_hand"]
+                    cur_turn["p2_ncards"] = gs["p2_ncards"]
+
                     x = int(gs["board"][0][-1:])
                     color = gs["board"][1].split(".")[0]
                     val   = gs["board"][1].split(".")[1]
@@ -147,12 +176,29 @@ def main(src, outdir):
                                 False
                         else:
                             c_aval  = eval_card(x,c_val);
-                            if color==c_color: opts["can_match_color"] = True
-                            if val==c_val:     opts["can_match_value"] = True
-                            elif aval==c_aval: opts["can_match_algebraic"] = True
+                            if color==c_color and not opts["can_match_color"]:
+                                cur_game["can_match_color"] = cur_game.get("can_match_color", 0) + 1
+                                opts["can_match_color"] = cur_turn["can_match_color"] = True
+                            if val==c_val and not opts["can_match_value"]:
+                                cur_game["can_match_value"] = cur_game.get("can_match_value", 0) + 1
+                                opts["can_match_value"] = cur_turn["can_match_value"] = True
+                            elif aval==c_aval and not opts["can_match_algebraic"]:
+                                cur_game["can_match_algebraic"] = cur_game.get("can_match_algebraic", 0) + 1
+                                opts["can_match_algebraic"] = cur_turn["can_match_algebraic"] = True
                     p["options"] = opts
                 if e["event_name"] == "user_played_card":
+                    cur_turn["card"] = p["card"]
+                    cur_turn["value"] = p["value"]
                     cur_game["n_cards_played"] = cur_game.get("n_cards_played", 0) + 1
+                    if ("match_color" in p.keys()) and p["match_color"] == True:
+                        cur_turn["matched_color"] = True
+                        cur_game["matched_color"] = cur_game.get("matched_color", 0) + 1
+                    if ("match_value" in p.keys()) and p["match_value"] == True:
+                        cur_turn["matched_value"] = True
+                        cur_game["matched_value"] = cur_game.get("matched_value", 0) + 1
+                    if ("match_algebraic" in p.keys()) and p["match_algebraic"] == True:
+                        cur_turn["matched_algebraic"] = True
+                        cur_game["matched_algebraic"] = cur_game.get("matched_algebraic", 0) + 1
                 elif e["event_name"] == "user_drew_card":
                     cur_game["n_cards_drawn"] = cur_game.get("n_cards_drawn", 0) + 1
             elif (e["event_name"] == "play_not_allowed"):
@@ -175,26 +221,40 @@ def main(src, outdir):
                 cur_game["play_again"] = False
                 wrap_game()
                 
-            cur_game_events.append(e);
+            cur_game_events.append(e)
+            turns.append(cur_turn)
             
+        # Print a few game stats to terminal
         wrap_game()
         print(f'Participant {uid} played {len(games)} games') 
         print(f'   finished {sum("finished" in g and (g["finished"] == True) for g in games)} ') 
         print(f'        won {sum("won" in g and (g["won"] == True) for g in games)} ') 
         print(f'       lost {sum("won" in g and (g["won"] == False) for g in games)} ') 
 
+        # Write game events to events.json
         for i,g in enumerate(games):
             game_dir = f'{outdir}/{uid}/game_{i+1:02}'
             Path(game_dir).mkdir(parents=True, exist_ok=True)
             with open(f'{game_dir}/events.json','w') as fout:
                 print(json.dumps(events_by_game[i], indent=2), file=fout)
-            
-        with open(f'{outdir}/{uid}/games.csv', 'w') as fout:
-            writer = csv.DictWriter(fout, set().union(*games))
-            writer.writeheader()
-            writer.writerows(games)
 
+        # - - - - - - Write game_stats dataframe to game_stats.csv - - - - - -
+        game_stats = pd.DataFrame(columns=game_stats_keys)
+        # Append each dict in games to game_stats dataframe
+        for dict in games:
+            df_dict = pd.DataFrame([dict])
+            game_stats = pd.concat([game_stats, df_dict], ignore_index=True)
+        # Write to csv file
+        game_stats.to_csv(f'{outdir}/{uid}/game_stats.csv')
 
+        # - - - - - - Write turn_stats dataframe to turn_stats.csv - - - - - -
+        turn_stats = pd.DataFrame(columns=turn_stats_keys)
+        # Append each dict in turns to turn_stats dataframe
+        for dict in turns:
+            df_dict = pd.DataFrame([dict])
+            turn_stats = pd.concat([turn_stats, df_dict], ignore_index=True)
+        # Write to csv file
+        turn_stats.to_csv(f'{outdir}/{uid}/turn_stats.csv')
                     
     # - - - - - - - - - - - - write out events by user id  - - - - - - - - - - - -
     
@@ -213,5 +273,4 @@ if __name__ == "__main__":
                         help="name of the output directory")
     args = parser.parse_args()
     main(args.file, args.output)
-    
     
