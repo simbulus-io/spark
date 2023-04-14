@@ -51,7 +51,7 @@ def main(src, outdir):
     # sort the array of events by their unix epoch timestamp
     evts = (sorted(evts, key=lambda e: int(e['timestamp'])))
 
-    irrelevant_keys = ["_id", "browser_session_id", "product", "activity", "bucket"]
+    irrelevant_keys = ["_id", "browser_session_id", "product", "bucket"]
 
     for i,e in enumerate(evts):
         # get a string formated local time in milliseconds from the timestamp. We are running this
