@@ -1,3 +1,5 @@
 *.json
 output
 outputs
+*/__pycache__/*
+*/data/*
