@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from utils import clean_up_helpers
 import pandas as pd
 import pytest
