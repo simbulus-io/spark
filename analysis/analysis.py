@@ -62,6 +62,14 @@ if make_subset:
     temp_df = equivacards_events_df[equivacards_events_df.user_id == subset_user_id][columns]
     temp_df.user_id = "abc"
     temp_df.to_csv(os.path.join(output_dir, "abc.csv"))
+    enriched_events_df[enriched_events_df.user_id == subset_user_id].to_csv(
+        os.path.join(output_dir, f"{subset_user_id}_enriched_events.csv")
+    )
+
+    turn_metrics_df[turn_metrics_df.user_id == subset_user_id].to_csv(
+        os.path.join(output_dir, f"{subset_user_id}_turn_level_metrics.csv")
+    )
+
 
 enriched_events_df.to_csv(os.path.join(output_dir, "enriched_events.csv"))
 

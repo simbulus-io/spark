@@ -20,8 +20,9 @@ class TestPlayedCardMetrics:
                 "num_cards_in_hand_at_start_of_turn": 7,
                 "num_play_not_allowed": 0,
                 "max_possible_cards_playable": 7,
-                "time_to_first_action": 45.45800018310547,
+                "time_to_first_action_seconds": 45.4580,
                 "first_match_in_turn": None,
+                "total_turn_time_seconds": 45.4580,
             },
         },
         {
@@ -36,8 +37,9 @@ class TestPlayedCardMetrics:
                 "num_cards_in_hand_at_start_of_turn": 7,
                 "num_play_not_allowed": 0,
                 "max_possible_cards_playable": 5,
-                "time_to_first_action": 134.39999985694885,
+                "time_to_first_action_seconds": 134.4,
                 "first_match_in_turn": "value_algebraic",
+                "total_turn_time_seconds": 158.4240,
             },
         },
         {
@@ -51,10 +53,11 @@ class TestPlayedCardMetrics:
                 "x_variable_switches": 2,
                 "num_cards_in_hand_at_start_of_turn": 7,
                 "num_play_not_allowed": 0,
-                # missing events to calculate these
-                # "time_to_first_action": None,
-                # "max_possible_cards_playable": None,
                 "first_match_in_turn": "color",
+                # missing events to calculate these
+                # "time_to_first_action_seconds": None,
+                # "max_possible_cards_playable": None,
+                # "total_turn_time_seconds": 0,
             },
         },
     ]

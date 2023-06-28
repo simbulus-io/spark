@@ -32,20 +32,22 @@ def calc_turn_metrics(input_df):
 
     time_to_first_move_df = (
         event_df.groupby(["user_id", "user_game_index", "user_turn_start_index"])
-        .apply(lambda x: (x.user_action_time.min() - x.user_turn_start_time.min()))
+        .apply(lambda x: round(x.user_action_time.min() - x.user_turn_start_time.min(), 4))
         .reset_index()
-        .rename(columns={0: "time_to_first_action"})
+        .rename(columns={0: "time_to_first_action_seconds"})
     )
 
     total_turn_time_df = (
         event_df.groupby(["user_id", "user_game_index", "user_turn_start_index"])
-        .apply(lambda x: (x.user_turn_end_time.min() - x.user_turn_start_time.min()))
+        .apply(
+            lambda x: round(x.user_turn_end_time.min() - x.user_turn_start_time.min(), 4),
+        )
         .reset_index()
-        .rename(columns={0: "total_turn_time"})
+        .rename(columns={0: "total_turn_time_seconds"})
     )
 
     # return agg_df
-    return pd.merge(agg_df, time_to_first_move_df).merge(total_turn_time_df)
+    return pd.merge(agg_df, time_to_first_move_df, how="left").merge(total_turn_time_df, how="left")
 
 
 def calc_switches(input_df):
