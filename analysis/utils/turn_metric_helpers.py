@@ -26,6 +26,7 @@ def calc_turn_metrics(input_df):
                 column="event_name", aggfunc=lambda x: sum(x == "play_not_allowed")
             ),
             max_possible_cards_playable=pd.NamedAgg(column="best_play_length", aggfunc=max),
+            first_match_in_turn=pd.NamedAgg(column="match_type", aggfunc="first"),
         )
     ).reset_index()
 
@@ -66,12 +67,12 @@ def calc_switches(input_df):
         axis=1,
     )
     user_played_card_df["match_type"] = user_played_card_df.apply(
-        lambda x: " ".join([match_type for matchtype in match_types if x[f"match_{match_type}"]]),
+        lambda x: "_".join([match_type for match_type in match_types if x[f"match_{match_type}"] is True]),
         axis=1,
     )
     return pd.merge(
         input_df,
-        user_played_card_df.drop(["p1_hand", "best_play", "board"], axis=1),
+        user_played_card_df.drop(["p1_hand", "best_play", "board"], axis=1, errors="ignore"),
         how="left",
     )
 

@@ -4,9 +4,9 @@ import pandas as pd
 import json
 from utils import clean_up_helpers, turn_metric_helpers
 
-
-input_filepath = "./input_data/analysis_set.json"
-
+dir_path = os.path.dirname(os.path.realpath(__file__))
+input_filepath = os.path.join(dir_path, "input_data/analysis_set.json")
+output_dir = os.path.join(dir_path, "output_data")
 
 with open(input_filepath) as f:
     event_json = json.load(f)
@@ -61,8 +61,8 @@ if make_subset:
     ] + match_columns
     temp_df = equivacards_events_df[equivacards_events_df.user_id == subset_user_id][columns]
     temp_df.user_id = "abc"
-    temp_df.to_csv("./output_data/abc.csv")
+    temp_df.to_csv(os.path.join(output_dir, "abc.csv"))
 
-enriched_events_df.to_csv("./output_data/enriched_events.csv")
+enriched_events_df.to_csv(os.path.join(output_dir, "enriched_events.csv"))
 
-turn_metrics_df.to_csv("./output_data/turn_level_metrics.csv")
+turn_metrics_df.to_csv(os.path.join(output_dir, "turn_level_metrics.csv"))

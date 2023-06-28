@@ -84,9 +84,7 @@ def add_game_turn_boundary_flags(input_df):
     equiv_events_df["game_end_time"] = equiv_events_df.apply(
         lambda x: x.unix_timestamp_combined if x.game_end else np.nan, axis=1
     )
-    equiv_events_df["user_turn_start"] = equiv_events_df.event_name.apply(
-        lambda x: x in ["user_turn", "deal_ended"]
-    )
+    equiv_events_df["user_turn_start"] = equiv_events_df.event_name.apply(lambda x: x in ["user_turn"])
     equiv_events_df["user_turn_start_time"] = equiv_events_df.apply(
         lambda x: x.unix_timestamp_combined if x.user_turn_start else np.nan, axis=1
     )

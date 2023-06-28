@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from utils import turn_metric_helpers
 import pandas as pd
 import pytest
@@ -86,8 +87,8 @@ class TestSwitchMetrics:
             "match_type": "color_value_algebraic",
         },
     ]
-
-    example_df = pd.read_csv("./analysis/tests/data/abc.csv")
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    example_df = pd.read_csv(os.path.join(dir_path, "../tests/data/abc.csv"))
     output_df = turn_metric_helpers.calc_switches(example_df)
 
     @pytest.mark.parametrize("match", matches)

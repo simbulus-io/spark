@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import numpy as np
 from utils import turn_metric_helpers
 import pandas as pd
@@ -20,6 +21,7 @@ class TestPlayedCardMetrics:
                 "num_play_not_allowed": 0,
                 "max_possible_cards_playable": 7,
                 "time_to_first_action": 45.45800018310547,
+                "first_match_in_turn": None,
             },
         },
         {
@@ -35,6 +37,7 @@ class TestPlayedCardMetrics:
                 "num_play_not_allowed": 0,
                 "max_possible_cards_playable": 5,
                 "time_to_first_action": 134.39999985694885,
+                "first_match_in_turn": "value_algebraic",
             },
         },
         {
@@ -48,13 +51,15 @@ class TestPlayedCardMetrics:
                 "x_variable_switches": 2,
                 "num_cards_in_hand_at_start_of_turn": 7,
                 "num_play_not_allowed": 0,
-                "time_to_first_action": None,
+                # missing events to calculate these
+                # "time_to_first_action": None,
                 # "max_possible_cards_playable": None,
+                "first_match_in_turn": "color",
             },
         },
     ]
-
-    example_df = pd.read_csv("./analysis/tests/data/abc.csv")
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    example_df = pd.read_csv(os.path.join(dir_path, "../tests/data/abc.csv"))
     output_df = turn_metric_helpers.calc_turn_metrics(example_df)
 
     @pytest.mark.parametrize("turn", turns)
