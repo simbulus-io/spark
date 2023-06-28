@@ -94,20 +94,3 @@ class TestSwitchMetrics:
     @pytest.mark.parametrize("match", matches)
     def test_switch_logic(self, match):
         assert turn_metric_helpers.calc_switch_type(match["current"], match["previous"]) == match["label"]
-
-    # @pytest.mark.parametrize("turn", turns)
-    # def test_switch_from_df(self, turn):
-    #     turn_df = self.output_df[
-    #         (self.output_df.user_game_index == turn["game"])
-    #         & (self.output_df.user_turn_start_index == turn["turn"])
-    #     ]
-    #     count_columns = [
-    #         "strict_switch_count",
-    #         "ambiguous_switch_count",
-    #         "strict_repeat_count",
-    #     ]
-    #     for count_column in count_columns:
-    #         assert (
-    #             turn_metric_helpers.calc_turn_metrics(turn_df)[count_column].max()
-    #             == turn[count_column]
-    #         ), f"{turn['game']} {turn['turn']} {count_column}"

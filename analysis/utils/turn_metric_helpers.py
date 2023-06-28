@@ -46,7 +46,6 @@ def calc_turn_metrics(input_df):
         .rename(columns={0: "total_turn_time_seconds"})
     )
 
-    # return agg_df
     return pd.merge(agg_df, time_to_first_move_df, how="left").merge(total_turn_time_df, how="left")
 
 
@@ -102,16 +101,3 @@ def calc_switch_type(current_matches, previous_matches):
         return "ambiguous_switch"
     else:
         return "other"
-
-
-# first_match_in_turn
-
-# x_variable_switches
-
-# num_cards_in_hand_at_start_of_turn
-
-# max_possible_cards_playable
-
-# num_play_not_allowed
-
-# total_turn_time
