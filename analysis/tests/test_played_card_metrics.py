@@ -1,75 +1,61 @@
 # -*- coding: utf-8 -*-
+import numpy as np
 from utils import turn_metric_helpers
 import pandas as pd
 import pytest
 
 
 class TestPlayedCardMetrics:
-    # setup dataset:
-    # match_columns = [f'match_{val}' for val in ['color', 'value', 'algebraic']]
-    # columns= ['user_id', 'user_game_index', 'user_turn_start_index', 'event_name', 'user_action_time', 'user_turn_start_time'] + match_columns
-    # temp_df = equivacards_events[(equivacards_events.user_id =='4491') &
-    #                             (equivacards_events.event_name=='user_played_card')][columns]
-    # temp_df.user_id = 'abc'
-    # temp_df.to_csv('analysis/tests/data/abc.csv')
-
     turns = [
         {
             "game": 2,
             "turn": 1,
-            "cards_played": 0,
-            "strict_switch": 0,
-            "ambiguous_switch": 0,
-            "strict_repeat": 0,
-            "x_variable_switch": 0,
+            "values": {
+                "strict_switch_count": 0,
+                "ambiguous_switch_count": 0,
+                "strict_repeat_count": 0,
+                "num_of_cards_played_in_turn": 0,
+                "x_variable_switches": 0,
+                "num_cards_in_hand_at_start_of_turn": 7,
+                "num_play_not_allowed": 0,
+                "max_possible_cards_playable": 7,
+                "time_to_first_action": 45.45800018310547,
+            },
         },
         {
             "game": 4,
             "turn": 1,
-            "cards_played": 5,
-            "strict_switch": 2,
-            "ambiguous_switch": 0,
-            "strict_repeat": 1,
-            "x_variable_switch": 0,
+            "values": {
+                "strict_switch_count": 2,
+                "ambiguous_switch_count": 0,
+                "strict_repeat_count": 1,
+                "num_of_cards_played_in_turn": 5,
+                "x_variable_switches": 1,
+                "num_cards_in_hand_at_start_of_turn": 7,
+                "num_play_not_allowed": 0,
+                "max_possible_cards_playable": 5,
+                "time_to_first_action": 134.39999985694885,
+            },
         },
         {
             "game": 12,
             "turn": 0,
-            "cards_played": 7,
-            "strict_switch": 1,
-            "ambiguous_switch": 2,
-            "strict_repeat": 1,
-            "x_variable_switch": 2,
+            "values": {
+                "strict_switch_count": 2,
+                "ambiguous_switch_count": 2,
+                "strict_repeat_count": 1,
+                "num_of_cards_played_in_turn": 7,
+                "x_variable_switches": 2,
+                "num_cards_in_hand_at_start_of_turn": 7,
+                "num_play_not_allowed": 0,
+                "time_to_first_action": None,
+                # "max_possible_cards_playable": None,
+            },
         },
     ]
 
-    matches = [
-        {"current": [1, 0, 0], "previous": [1, 0, 0], "label": "strict_repeat"},
-        {"current": [1, 0, 0], "previous": [0, 1, 0], "label": "strict_switch"},
-        {"current": [1, 0, 0], "previous": [0, 0, 1], "label": "strict_switch"},
-        {"current": [1, 0, 0], "previous": [0, 1, 1], "label": "strict_switch"},
-        {"current": [1, 0, 0], "previous": [0, 0, 0], "label": "other"},
-        {"current": [0, 0, 0], "previous": [1, 0, 0], "label": "white_card"},
-        {"current": [1, 0, 0], "previous": [1, 1, 0], "label": "ambiguous_switch"},
-        {"current": [1, 0, 0], "previous": [1, 0, 1], "label": "ambiguous_switch"},
-        {"current": [1, 1, 0], "previous": [0, 1, 0], "label": "ambiguous_switch"},
-        {"current": [1, 1, 0], "previous": [1, 1, 0], "label": "ambiguous_switch"},
-        {"current": [1, 1, 0], "previous": [1, 1, 0], "label": "ambiguous_switch"},
-        {"current": [1, 0, 0], "previous": [1, 1, 1], "label": "ambiguous_switch"},
-        {"current": [1, 1, 1], "previous": [1, 1, 1], "label": "ambiguous_switch"},
-    ]
-
     example_df = pd.read_csv("./analysis/tests/data/abc.csv")
-
-    output_df = turn_metric_helpers.cal_switches(example_df)
-    assert output_df.shape[0] == 90
-
-    @pytest.mark.parametrize("match", matches)
-    def test_switches(self, match):
-        assert (
-            turn_metric_helpers.calc_switch_type(match["current"], match["previous"])
-            == match["label"]
-        )
+    output_df = turn_metric_helpers.calc_turn_metrics(example_df)
 
     @pytest.mark.parametrize("turn", turns)
     def test_switch_from_df(self, turn):
@@ -77,16 +63,5 @@ class TestPlayedCardMetrics:
             (self.output_df.user_game_index == turn["game"])
             & (self.output_df.user_turn_start_index == turn["turn"])
         ]
-        assert (
-            turn_df[turn_df.switch_type == "strict_repeat"].shape[0]
-            == turn["strict_repeat"]
-        )
-
-        assert (
-            turn_df[turn_df.switch_type == "strict_switch"].shape[0]
-            == turn["strict_switch"]
-        )
-        assert (
-            turn_df[turn_df.switch_type == "ambiguous_switch"].shape[0]
-            == turn["ambiguous_switch"]
-        )
+        for key, value in turn["values"].items():
+            assert turn_df[key].values[0] == value, f"{turn['game']}:{turn['turn']} - {key},{value}"
