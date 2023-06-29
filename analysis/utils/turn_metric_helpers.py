@@ -9,7 +9,8 @@ def calc_turn_metrics(input_df):
     event_df = input_df.copy()
     event_df_w_switches_df = calc_switches(event_df)
     agg_df = (
-        event_df_w_switches_df.groupby(["user_id", "user_game_index", "user_turn_start_index"]).agg(
+        event_df_w_switches_df.groupby(["email", "user_id", "user_game_index", "user_turn_start_index"]).agg(
+            game_start=pd.NamedAgg(column="timestamp", aggfunc=min),
             strict_repeat_count=pd.NamedAgg(
                 column="switch_type", aggfunc=lambda x: sum(x == "strict_repeat")
             ),
