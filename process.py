@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 import argparse
-import csv
 import json
-import os
-import numpy as np
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
@@ -180,7 +177,7 @@ def main(src, outdir):
                 e["event_name"] == "user_drew_card"
             ):
                 p = e["payload"]
-                if last_gamestate == None:
+                if last_gamestate is None:
                     p["options"] = "unknown"
                 else:
                     gs = last_gamestate

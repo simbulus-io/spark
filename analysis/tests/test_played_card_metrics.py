@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import numpy as np
 from utils import turn_metric_helpers
 import pandas as pd
 import pytest
