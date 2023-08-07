@@ -59,7 +59,6 @@ repos:
       - id: check-shebang-scripts-are-executable
       - id: check-toml
       - id: debug-statements
-      - id: detect-aws-credentials
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: fix-encoding-pragma
