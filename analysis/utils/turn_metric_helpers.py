@@ -9,8 +9,13 @@ def calc_turn_metrics(input_df):
     event_df = input_df.copy()
     event_df_w_switches_df = calc_switches(event_df)
     agg_df = (
-        event_df_w_switches_df.groupby(["email", "user_id", "user_game_index", "user_turn_start_index"]).agg(
-            game_start=pd.NamedAgg(column="timestamp", aggfunc=min),
+        event_df_w_switches_df.groupby(
+            ["email", "user_id", "user_game_index", "user_turn_start_index"],
+            dropna=False,
+        ).agg(
+            turn_start_date_et=pd.NamedAgg(column="date_tz_et", aggfunc=min),
+            turn_start_time_et=pd.NamedAgg(column="timestamp_tz_et", aggfunc=min),
+            turn_start=pd.NamedAgg(column="timestamp", aggfunc=min),
             strict_repeat_count=pd.NamedAgg(
                 column="switch_type", aggfunc=lambda x: sum(x == "strict_repeat")
             ),
@@ -20,7 +25,9 @@ def calc_turn_metrics(input_df):
             strict_switch_count=pd.NamedAgg(
                 column="switch_type", aggfunc=lambda x: sum(x == "strict_switch")
             ),
-            num_of_cards_played_in_turn=pd.NamedAgg(column="card", aggfunc="count"),
+            num_of_cards_played_in_turn=pd.NamedAgg(
+                column="event_name", aggfunc=lambda x: sum(x == "user_played_card")
+            ),
             x_variable_switches=pd.NamedAgg(column="changed_x_val", aggfunc="count"),
             num_cards_in_hand_at_start_of_turn=pd.NamedAgg(column="p1_hand_size_pre_action", aggfunc="first"),
             num_play_not_allowed=pd.NamedAgg(
@@ -72,9 +79,11 @@ def calc_switches(input_df):
         lambda x: "_".join([match_type for match_type in match_types if x[f"match_{match_type}"] is True]),
         axis=1,
     )
+    # check for missed list elements user_played_card_df.applymap(lambda x: type(x)==list).max()
+
     return pd.merge(
         input_df,
-        user_played_card_df.drop(["p1_hand", "best_play", "board"], axis=1, errors="ignore"),
+        user_played_card_df.drop(["p1_hand", "best_play", "board", "p0_hand"], axis=1, errors="ignore"),
         how="left",
     )
 

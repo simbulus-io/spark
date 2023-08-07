@@ -22,5 +22,23 @@ class TestTimestamps:
             "2022-08-05T20:56:40.000000000",
             "2022-09-09T01:46:40.000000000",
         ]
-        actual = list(output_df.timestamp.values)
-        assert all([str(a) == str(b) for a, b in zip(actual, expected)])
+        actual_utc = list(output_df.timestamp.values)
+        assert all([str(a) == str(b) for a, b in zip(actual_utc, expected)])
+
+        expect_et = [
+            "2023-05-31T10:15:26.261000-04:00",
+            "2022-08-16T16:29:42.869000-04:00",
+            "2022-08-05T16:56:40-04:00",
+            "2022-09-08T21:46:40-04:00",
+        ]
+        actual_et = list(output_df.timestamp_tz_et.values)
+        assert all([str(a) == str(b) for a, b in zip(actual_et, expect_et)])
+
+        expect_et_date = [
+            "20230531",
+            "20220816",
+            "20220805",
+            "20220908",
+        ]
+        actual_et_date = list(output_df.date_tz_et.values)
+        assert all([str(a) == str(b) for a, b in zip(actual_et_date, expect_et_date)])

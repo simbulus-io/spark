@@ -1,10 +1,4 @@
 ---
-ci:
-  autoupdate_schedule: monthly
-  # Leave pip-audit to only run locally and not in CI
-  # pre-commit.ci does not allow network calls
-  skip: [pip-audit]
-
 default_language_version:
   python: python3.10
 
@@ -71,19 +65,7 @@ repos:
       - id: fix-encoding-pragma
       - id: requirements-txt-fixer
       - id: trailing-whitespace
-  - repo: local
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
     hooks:
-      - id: jupyter-nb-clear-output
-        name: jupyter-nb-clear-output
-        files: \.ipynb$
-        stages: [commit]
-        language: python
-        entry: >
-          python -m jupyter nbconvert
-          --ClearOutputPreprocessor.enabled=True
-          --ClearMetadataPreprocessor.enabled=True
-          --inplace
-          --ClearMetadataPreprocessor.clear_cell_metadata=True
-          --ClearMetadataPreprocessor.clear_notebook_metadata=False
-          --ClearMetadataPreprocessor.preserve_cell_metadata_mask='[("tags")]'
-        additional_dependencies: ["jupyter", "jupyter-contrib-nbextensions"]
+      - id: nbstripout

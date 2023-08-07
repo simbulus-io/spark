@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+import pytz
 import numpy as np
 import pandas as pd
 import json
@@ -10,7 +11,7 @@ def get_from_db():
     import saga_py_aws
     import saga_py_mongo
 
-    secret = saga_py_aws.get_mongo_uri_secret("prod")
+    secret = saga_py_aws.secrets.get_mongo_uri_secret("prod")
     client = saga_py_mongo.get_mongo_client(secret)
 
     mapping_df = pd.read_csv("./data/cognition_mapping.csv", dtype={"user_id": str})
@@ -55,6 +56,16 @@ def align_timestamps(input_df):
 
     output_df["timestamp"] = output_df.apply(
         lambda x: datetime.utcfromtimestamp(x.unix_timestamp_combined), axis=1
+    )
+    est = pytz.timezone("US/Eastern")
+    date_format = "%Y%m%d"
+    output_df["timestamp_tz_et"] = output_df.apply(
+        lambda x: datetime.fromtimestamp(x.unix_timestamp_combined).astimezone(est).isoformat(),
+        axis=1,
+    )
+    output_df["date_tz_et"] = output_df.apply(
+        lambda x: datetime.fromtimestamp(x.unix_timestamp_combined).astimezone(est).strftime(date_format),
+        axis=1,
     )
     return output_df
 
