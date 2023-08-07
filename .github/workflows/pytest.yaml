@@ -2,10 +2,6 @@ name: pytest
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "**/py_libs/**"
-
 
 jobs:
   build:
